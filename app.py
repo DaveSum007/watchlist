@@ -43,17 +43,18 @@ def initdb(drop):
     db.create_all()
     click.echo('Initialized database.')#输出提示信息
 
+@app.context_processor#模板处理上下文处理函数，该函数返回的变量将会同意注入到每一个模板上下文环境中
+def inject_user():
+    user=User.query.first()
+    return dict(user=user)
+
 @app.route('/')
 def index():
-    user=User.query.first()
     movies=Movie.query.all()
-    return render_template('index.html',user=user,movies=movies)
+    return render_template('index.html',movies=movies)
 
-@app.route('/user/<user>')
-def user_page(user):
-    return 'User: %s'% user
 
-#创建自定义命令forge
+#创建自定义命令forge，该命令能够创建数据库
 @app.cli.command()
 def forge():
     """generate fake data"""
@@ -81,3 +82,8 @@ def forge():
 
     db.session.commit()
     click.echo('Done.')
+
+#异常处理
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'),404
